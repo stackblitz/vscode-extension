@@ -1,6 +1,5 @@
 import { exec } from "child_process";
 import * as fs from 'fs';
-import { platform } from "process";
 import * as vscode from 'vscode';
 
 export default class Tools {
@@ -100,7 +99,7 @@ export default class Tools {
             acceptName: ['opera']
         };*/
 
-        let acceptBrowsers = ['chrome', 'firefox', 'opera'];
+        let acceptBrowsers = ['Chrome', 'Firefox', 'Opera'];
 
         if (process.platform === 'win32') {
             acceptBrowsers.push('Internet Explorer');
@@ -118,13 +117,13 @@ export default class Tools {
         let browserName = '';
 
         switch (browser) {
-            case 'chrome':
+            case 'Chrome':
                 browserName = (platform === 'win32' ? 'chrome' : (platform === 'darwin' ? 'google chrome' : 'google-chrome'));
                 break;
-            case 'firefox':
+            case 'Firefox':
                 browserName = 'firefox';
                 break;
-            case 'opera':
+            case 'Opera':
                 browserName = 'opera';
                 break;
             case 'Internet Explorer':
@@ -133,7 +132,6 @@ export default class Tools {
             case 'Safari':
                 browserName = 'safari';
                 break;
-
         }
 
         switch (platform) {
