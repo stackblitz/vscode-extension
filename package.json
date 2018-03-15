@@ -11,14 +11,14 @@
         "Other"
     ],
     "activationEvents": [
-        "onCommand:extension.sayHello"
+        "onCommand:extension.stackblitz.open"
     ],
     "main": "./out/extension",
     "contributes": {
         "commands": [
             {
-                "command": "extension.sayHello",
-                "title": "Hello World"
+                "command": "extension.stackblitz.open",
+                "title": "Open in StackBlitz"
             }
         ]
     },
@@ -35,5 +35,9 @@
         "tslint": "^5.8.0",
         "@types/node": "^7.0.43",
         "@types/mocha": "^2.2.42"
+    },
+    "dependencies": {
+        "@stackblitz/sdk": "^1.1.1",
+        "tmp": "0.0.33"
     }
 }
