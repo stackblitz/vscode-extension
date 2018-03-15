@@ -2,6 +2,7 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
+import * as fs from 'fs';
 import Tools from './tools';
 
 // this method is called when your extension is activated
@@ -17,46 +18,99 @@ export function activate(context: vscode.ExtensionContext) {
     // The commandId parameter must match the command field in package.json
     let disposable = vscode.commands.registerCommand('extension.stackblitz.open', () => {
         // The code you place here will be executed every time your command is executed
-        var fs = require('fs');
-        var path = vscode.workspace.rootPath;
-        var tools = new Tools();
 
+        // Path of working directory
+        let path = vscode.workspace.rootPath;
+        // Instance tools class
+        let tools = new Tools();
+
+        // Check if working directory is loaded
         if (path !== undefined) {
-            var excludeFoldersAndFiles = [
+            // Exclude folders o files by name
+            let excludeFoldersAndFiles = [
                 'node_modules',
                 '.git',
                 '.vscode',
                 '.idea',
-                'vsStackBlitzTmpFile.html'
+                'vsStackBlitzTmpFile.html',
             ];
 
-            console.log(tools.walkSync(path,excludeFoldersAndFiles, []));
+            /*
+            // List of no raws extension
+            let noRawsExtension = [
+                'html',
+                'scss',
+                'ts',
+                'json'
+            ];
+            */
 
-            var html = '<html lang="en">';
-            html += '<head></head>';
-            html += '<body>';
-            html += '<form id="mainForm" method="post" action="https://stackblitz.com/run" target="_self">';
-            html += '<input type="hidden" name="project[files][index.ts]" value="import { Observable } from \'rxjs/Observable\';\r\nimport \'rxjs/add/observable/fromEvent\';\r\nimport \'rxjs/add/operator/scan\';\r\nvar button = document.querySelector(\'button\');Observable.fromEvent(button, \'click\').scan((count: number) => count + 1, 0).subscribe(count => console.log(`Clicked ${count} times`));">';
-            html += '<input type="hidden" name="project[files][index.html]" value="<button>Click Me</button>">';
-            html += '<input type="hidden" name="project[tags][0]" value="rxjs">';
-            html += '<input type="hidden" name="project[tags][1]" value="example">';
-            html += '<input type="hidden" name="project[tags][2]" value="tutorial">';
-            html += '<input type="hidden" name="project[description]" value="RxJS Example">';
-            html += '<input type="hidden" name="project[dependencies]" value="{&quot;rxjs&quot;:&quot;5.5.6&quot;}">';
-            html += '<input type="hidden" name="project[template]" value="typescript">';
-            html += '</form>';
-            html += '<script>document.getElementById("mainForm").submit();</script>';
-            html += '</body>';
-            html += '</html>';
+            // Ask to template
+            vscode.window.showQuickPick(['angular-cli', 'create-react-app', 'typescript', 'javascript']).then((value) => {
+                // Get template
+                let template = value;
 
-            fs.writeFile(path + "\\vsStackBlitzTmpFile.html", html, function (err: any) {
-                if (err) {
-                    return console.log(err);
+                // Check template
+                if (value !== undefined) {
+
+                    // Get all files recursives
+                    let filesWorking = tools.walkSync(path, excludeFoldersAndFiles, []);
+
+                    let html = '<html lang="en">';
+                    html += '<head>Redirect to StackBlitz...</head>';
+                    html += '<body>';
+                    html += '<form id="mainForm" method="post" action="https://stackblitz.com/run" target="_self">';
+                    filesWorking.forEach((element: string) => {
+                        try {
+                            let data = fs.readFileSync(element, 'utf-8');
+                            let insideFilePath = element.replace(path + '/', '');
+
+                            /*
+                             let fileExtension = tools.getExtension(element);
+     
+                             if (noRawsExtension.some(x => x === fileExtension)) {
+                                 html += '<input type="hidden" name="project[files][' + insideFilePath + ']" value="' + tools.encodeHTML(data) + '">';
+                             } else {
+                                 html += '<input type="hidden" name="project[files][' + insideFilePath + ']" value="' + data + '">';
+                             }
+                             */
+
+                            html += '<input type="hidden" name="project[files][' + insideFilePath + ']" value="' + tools.encodeHTML(data) + '">';
+                        } catch (error) {
+                            console.log(error);
+                        }
+                    });
+                    // Input Tags
+                    html += '<input type="hidden" name="project[tags][0]" value="vscode">';
+                    html += '<input type="hidden" name="project[tags][1]" value="example">';
+                    html += '<input type="hidden" name="project[tags][2]" value="autogenerate">';
+                    // Input Description
+                    html += '<input type="hidden" name="project[description]" value="Autogenerated by VSCode Plugin">';
+                    html += '<input type="hidden" name="project[dependencies]" value="{&quot;rxjs&quot;:&quot;5.5.6&quot;}">';
+                    // Input Template
+                    html += '<input type="hidden" name="project[template]" value="' + template + '">';
+                    html += '</form>';
+                    html += '<script>document.getElementById("mainForm").submit();</script>';
+                    html += '</body>';
+                    html += '</html>';
+
+                    fs.writeFile(path + "\\vsStackBlitzTmpFile.html", html, (err: any) => {
+                        if (err) {
+                            return console.log(err);
+                        }
+
+                        vscode.window.showQuickPick(tools.acceptBrowsers()).then((item: any) => {
+                            if (!item) {
+                                return;
+                            }
+
+                            tools.openFile(path + "\\vsStackBlitzTmpFile.html", item);
+                        });
+                    });
                 }
 
-                console.log("The file was saved!");
-            });
 
+            });
         }
     });
 
