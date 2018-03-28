@@ -33,6 +33,7 @@ export function activate(context: vscode.ExtensionContext) {
                 '.vscode',
                 '.idea',
                 'vsStackBlitzTmpFile.html',
+                'package-lock.json'
             ];
 
             /*
